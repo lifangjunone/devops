@@ -1,0 +1,49 @@
+# 定义构建的阶段
+stages:
+  - build
+  - test
+  - deploy
+
+# 定义job
+job0:
+  tags: # 指定在tag为 go 的runner上运行该job 
+    - go
+  stage: .pro # 流水线开始之前运行
+  script:
+    - echo "init"
+
+job1:
+  tags:
+    - go
+  stage: build
+  script:
+    - echo "build"
+
+job2-1:
+  tags:
+    - go
+  stage: test
+  script:
+    - echo "test"
+    - sleep 10
+
+job2-2:
+  tags:
+    - python
+  stage: test
+  script:
+    - echo "test"
+
+job3:
+  tags:
+    - go
+  stage: deploy
+  script:
+    - echo "deploy"
+
+job4:
+  tags:
+    - go
+  stage: .post
+  script:
+    - echo "end"
