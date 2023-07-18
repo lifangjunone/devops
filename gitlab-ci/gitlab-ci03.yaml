@@ -1,0 +1,17 @@
+stages:
+  - build
+
+variables:
+  BUILD_TOOLS:
+    value: "go"
+    description: "choice build tools"
+  RUNNER_TAG: "go"
+
+job1:
+  tags:
+    - "${RUNNER_TAG}"
+  stage: build
+  variables:
+    BUILD_TOOLS: "python"
+  script:
+    - echo "${BUILD_TOOLS}"
