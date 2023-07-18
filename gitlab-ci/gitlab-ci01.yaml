@@ -8,7 +8,7 @@ stages:
 job0:
   tags: # 指定在tag为 go 的runner上运行该job 
     - go
-  stage: .pro # 流水线开始之前运行
+  stage: .pre # 流水线开始之前运行
   script:
     - echo "init"
 
