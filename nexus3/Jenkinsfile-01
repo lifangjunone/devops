@@ -1,0 +1,60 @@
+pipeline {
+    agent { label 'nexus' }
+
+    stages {
+        stage('Hello') {
+            steps {
+                echo 'Hello World'
+            }
+        }
+        stage('Checkout') {
+            steps {
+                script {
+                    Checkout()
+                }
+            }
+        }
+        stage('Build') {
+            steps {
+                script {
+                    Build()
+                }
+            }
+        }
+        stage('Push') {
+            steps {
+                script {
+                    PushArtifactByPlugin()
+                }
+            }
+        }
+    }
+}
+
+def Build() {
+    sh "${params.buildCommand}"
+}
+
+def Checkout() {
+    checkout([
+        $class: 'GitSCM',
+        branches: [[name: '*/main']], 
+        extensions: [], 
+        userRemoteConfigs: [[credentialsId: 'gitlab-secret', 
+        url: 'http://god.gitlab.com/backend/maven-demo.git'
+        ]]])
+}
+
+def PushArtifactByPlugin() {
+    nexusArtifactUploader artifacts: [[artifactId: 'demo-app',
+                                        classifier: '', 
+                                        file: 'target/demo-0.0.1-SNAPSHOT.jar',
+                                        type: 'jar']], 
+                credentialsId: '61428597-8502-46ef-b47c-a6888ee073a9',
+                groupId: 'demo.com', 
+                nexusUrl: '192.168.137.228:8081', 
+                nexusVersion: 'nexus3', 
+                protocol: 'http', 
+                repository: 'maven-devops-release', 
+                version: '1.1.1'
+}
