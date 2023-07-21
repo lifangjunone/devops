@@ -1,0 +1,42 @@
+// myMaven： jenkins 配置中 指定的共享库名字， main：git的分支名
+@Library("myMaven@main") _
+
+def common = new org.devops.Common()
+def checkout = new org.devops.Checkout()
+def build = new org.devops.Build()
+
+
+users = [
+    ["id": 1, "name": "jenkins1"],
+    ["id": 2, "name": "jenkins2"],
+    ["id": 3, "name": "jenkins3"],
+]
+
+
+pipeline {
+    agent { label 'nexus'}
+    stages {
+        stage("Checkout") {
+            steps {
+                script {
+                    echo "Checkout"
+                    build.Checkout()
+                }
+            }
+        } 
+        stage("Build") {
+            steps {
+                script {
+                    build.Build()
+                }
+            }
+        }
+        stage("PushRepo") {
+            steps {
+                script {
+                    build.PushRepo(checkout.GetCommitID(), build.GetBranchVersion())
+                }
+            }
+        }
+    }   
+}

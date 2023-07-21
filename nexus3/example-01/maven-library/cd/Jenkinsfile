@@ -1,0 +1,49 @@
+// myMaven： jenkins 配置中 指定的共享库名字， main：git的分支名
+@Library("myMaven@main") _
+
+def build = new org.devops.Build()
+def mygitlab = new org.devops.Gitlab()
+
+pipeline {
+    agent { label 'nexus'}
+    // 跳过 git checkout
+    // options {
+    //     skipDefaultCheckout true
+    // }
+    stages {
+        stage("Init") {
+            steps {
+                script {
+                    init = "${params.init}"
+                    if (init == "true") {
+                        echo "init"
+                        build.Checkout()
+                        build.Build()
+                    }
+                }
+            }
+        } 
+        stage("Pull") {
+            steps {
+                script {
+                    echo "pull"
+                    branchName = "${params.branchName}" - "origin/"
+                    projectName = "${JOB_NAME}".split('_')[0]
+                    projectID = mygitlab.GetProjectIDByName(projectName, "backend")
+                    println(projectID)
+                    commitId = mygitlab.GetBranchCommitID(projectID, branchName)
+                    println(commitId)
+                    appName = branchName + "-" + commitId 
+                    println(appName)
+                }
+            }
+        }
+        stage("deploy") {
+            steps {
+                script {
+                    echo "deploy"
+                }
+            }
+        }
+    }
+}
