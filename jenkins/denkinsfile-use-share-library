@@ -1,0 +1,16 @@
+// 导入共享库类
+def checkout = new org.devops.Checkout()
+
+pipelinet {
+    stages {
+        stage('checkout') {
+            steps {
+                script {
+                    // commitID 
+                    commitID = checkout.GetCommitID
+                }
+            }
+        }
+    }
+}
+
