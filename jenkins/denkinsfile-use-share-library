@@ -1,4 +1,5 @@
-// 导入共享库类
+// 导入共享库
+@Library("shared library name") _
 def checkout = new org.devops.Checkout()
 
 pipelinet {
