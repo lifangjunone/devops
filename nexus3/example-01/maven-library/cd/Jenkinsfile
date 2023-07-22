@@ -3,6 +3,7 @@
 
 def build = new org.devops.Build()
 def mygitlab = new org.devops.Gitlab()
+def nexus = new org.devops.Nexus()
 
 pipeline {
     agent { label 'nexus'}
@@ -33,8 +34,13 @@ pipeline {
                     println(projectID)
                     commitId = mygitlab.GetBranchCommitID(projectID, branchName)
                     println(commitId)
-                    appName = branchName + "-" + commitId 
-                    println(appName)
+                    branchVersion = branchName - "realse-"
+                    appName = branchVersion + "-" + commitId 
+                    
+                    downloadUrl = "http://192.168.137.228:8081/repository/${projectName}/godit/com/${projectName}/${appName}/${projectName}-${appName}.jar"
+                    println(downloadUrl)
+                    // 下载包从nexus
+                    sh "wget ${downloadUrl} && ls -l"
                 }
             }
         }
