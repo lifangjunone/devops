@@ -1,0 +1,32 @@
+---
+- hosts: test # 定义运行的主机
+  remote_user: root
+  tasks:
+  # 安装工具
+  - name: Install utils
+    shell: apt update && apt install curl
+  # 创建备份文件夹
+  - name: Create backup directory
+    file:
+      path: /opt/backup
+      state: directory
+    ignore_errors: yes
+  # 备份老的 jar 包
+  - name: Backup old jar file
+    shell: mv /opt/*.jar /opt/backup/
+    ignore_errors: yes
+  # 上传 jar 包到部署服务器
+  - name: Upload jar file to deploy server
+    copy:
+      src: "./{{ package_name }}"
+      dest: /opt/
+  # 部署服务
+  - name: Deploy server
+    shell: nohup java -jar /opt/{{ package_name }} &
+  # 睡眠 10秒，等服务启动
+  - name: Sleep 10 seconds
+    shell: sleep 10
+  # 测试API
+  - name: Test API
+    shell: curl http://127.0.0.1:9090
+    ignore_errors: yes

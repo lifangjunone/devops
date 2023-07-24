@@ -1,0 +1,66 @@
+// myMaven： jenkins 配置中 指定的共享库名字， main：git的分支名
+@Library("myMaven@main") _
+
+def build = new org.devops.Build()
+def mygitlab = new org.devops.Gitlab()
+
+pipeline {
+    agent { label 'nexus'}
+    // 跳过 git checkout
+    // options {
+    //     skipDefaultCheckout true
+    // }
+    stages {
+        stage("Init") {
+            steps {
+                script {
+                    init = "${params.init}"
+                    if (init == "true") {
+                        echo "init"
+                        build.Checkout()
+                        build.Build()
+                    }
+                }
+            }
+        } 
+        stage("Pull") {
+            steps {
+                script {
+                    echo "pull"
+                    branchName = "${params.branchName}" - "origin/"
+                    projectName = "${JOB_NAME}".split('_')[0]
+                    projectID = mygitlab.GetProjectIDByName(projectName, "backend")
+                    println(projectID)
+                    commitId = mygitlab.GetBranchCommitID(projectID, branchName)
+                    println(commitId)
+                    branchVersion = branchName - "realse-"
+                    appName = branchVersion + "-" + commitId 
+                    env.PACKAGE_NAME = "${projectName}-${appName}.jar"
+                    downloadUrl = "http://192.168.137.228:8081/repository/${projectName}/godit/com/${projectName}/${appName}/${projectName}-${appName}.jar"
+                    println(downloadUrl)
+                    // 下载包从nexus
+                    sh "wget --quiet ${downloadUrl} && ls -l"
+                }
+            }
+        }
+        stage("deploy") {
+            steps {
+                script {
+                    echo "deploy"
+                    // libraryResource 是共享库 resources下的资源文件, 固定名
+                    // 从共享库读取文件内容
+                    fileData = libraryResource 'scripts/playbook.yaml'
+                    // println(fileData)
+                    // 将共享库读取的文件内容写入到执行机器的workspace目录下的 playbook.yaml文件
+                    writeFile file: 'playbook.yaml', text: fileData
+                    package_name = "${env.PACKAGE_NAME}" 
+                    println(package_name)
+                    // 调用 ansible playbook 部署 项目
+                    sh """
+                        ansible-playbook playbook.yaml  --extra-vars "package_name=${package_name}"
+                    """
+                }
+            }
+        }
+    }
+}
